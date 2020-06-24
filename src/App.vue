@@ -28,15 +28,39 @@
             width="40"
           />
         </router-link>
-        <div class="text-h5">{{$route.meta.title || '山楂记账'}}</div>
+        <div class="text-h6">{{$route.meta.title || '山楂记账'}}</div>
       </div>
       <v-spacer />
+      <v-btn
+        icon
+      >
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
+      <v-progress-circular
+        v-if="networkStatus === 0"
+        class="ml-3"
+        size="24"
+        width="2"
+        indeterminate
+      ></v-progress-circular>
+      <v-btn
+        v-else
+        icon
+      >
+        <v-icon v-if="networkStatus === 1">
+          mdi-cloud-alert
+        </v-icon>
+        <v-icon v-else>
+          mdi-cloud-check
+        </v-icon>
+      </v-btn>
       <template v-slot:extension v-if="$route.meta.tabs">
         <v-tabs
           v-model="tab"
           centered
         >
           <v-tab
+            active-class="white--text"
             v-for="tab in $route.meta.tabs"
             :key="tab.name"
             :to="tab.href"
@@ -69,6 +93,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapActions, mapState } from 'vuex';
 import DrawerUserInfo from './components/DrawerUserInfo.vue';
 
 export default Vue.extend({
@@ -80,11 +105,24 @@ export default Vue.extend({
     drawer: false,
     tab: '',
   }),
+  mounted() {
+    this.init();
+  },
+  computed: {
+    ...mapState([
+      'networkStatus',
+    ]),
+  },
   watch: {
     // eslint-disable-next-line func-names
     '$route.meta.closable': function () {
       this.drawer = false;
     },
+  },
+  methods: {
+    ...mapActions([
+      'init',
+    ]),
   },
 });
 </script>

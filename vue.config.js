@@ -2,6 +2,16 @@ module.exports = {
   transpileDependencies: [
     'vuetify',
   ],
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+      },
+      '/media': {
+        target: 'http://localhost:8000',
+      },
+    },
+  },
   pwa: {
     name: '山楂记账',
     themeColor: '#f57f17',
