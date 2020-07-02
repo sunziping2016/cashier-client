@@ -1,46 +1,78 @@
 <template>
-  <div
-    class="drawer-user-info pa-4 d-flex flex-column justify-space-between"
-    :style="{ backgroundColor: $vuetify.theme.currentTheme.primary }"
+  <router-link
+    tag="div"
+    :to="avatarRoute"
+    v-slot="{ href, navigate }"
   >
     <div
-      class="d-flex justify-space-between"
+      class="drawer-user-info pa-4 d-flex flex-column"
+      :style="{ backgroundColor: $vuetify.theme.currentTheme.primary }"
     >
-      <component
-        :is="canLogin ? 'router-link' : 'div'"
-        :to="{ name: 'Login' }" class="text-decoration-none"
+      <div
+        class="d-flex justify-space-between"
       >
-        <v-avatar
-          size="64"
-          color="yellow darken-2"
+        <a
+          class="text-decoration-none"
+          :href="href"
+          @click="navigate"
         >
-          <v-icon dark large>mdi-account</v-icon>
-        </v-avatar>
-      </component>
-      <v-btn
-        icon
-        @click="$vuetify.theme.dark = !$vuetify.theme.dark"
-      >
-        <v-icon color="white">mdi-brightness-{{ $vuetify.theme.dark ? '4' : '7' }}</v-icon>
-      </v-btn>
+          <v-avatar
+            size="64"
+            color="yellow darken-2"
+          >
+            <v-icon dark large v-if="!avatar">mdi-account</v-icon>
+            <img v-else :src="avatar" alt="avatar">
+          </v-avatar>
+        </a>
+        <v-btn
+          icon
+          @click="$vuetify.theme.dark = !$vuetify.theme.dark"
+        >
+          <v-icon color="white">mdi-brightness-{{ $vuetify.theme.dark ? '4' : '7' }}</v-icon>
+        </v-btn>
+      </div>
+      <v-spacer />
+      <div class="white--text" v-if="me">
+        <div>{{me.nickname || '还没有昵称ㄟ( ▔, ▔ )ㄏ'}}</div>
+        <div class="caption" v-if="me">@{{me.username}}</div>
+      </div>
+      <a class="white--text text-decoration-none" v-else-if="canLogin"
+         :href="href" @click="navigate"
+      >点击头像登录</a>
+      <div class="white--text" v-else-if="networkStatus === 2">服务器禁止了用户登录</div>
+      <div class="white--text" v-else>无法连接服务器</div>
     </div>
-    <div class="white--text" v-if="canLogin">点击头像登录</div>
-    <div class="white--text" v-else>服务器禁止了用户登录</div>
-  </div>
+  </router-link>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 
 export default Vue.extend({
   computed: {
+    ...mapState([
+      'networkStatus',
+    ]),
     ...mapGetters([
       'myPermissionsSet',
     ]),
-    canLogin() {
+    ...mapGetters('users', [
+      'me',
+    ]),
+    canLogin(): boolean {
       return this.myPermissionsSet['token:acquire-by-username']
         || this.myPermissionsSet['token:acquire-by-email'];
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    avatarRoute(): any {
+      if (!this.me && this.canLogin) {
+        return { name: 'Login' };
+      }
+      return { name: 'NotFound' };
+    },
+    avatar(): boolean {
+      return this.me && (this.me.avatar128 || this.me.avatar);
     },
   },
 });
@@ -48,5 +80,5 @@ export default Vue.extend({
 
 <style lang="sass">
 .drawer-user-info
-  min-height: 150px
+  min-height: 160px
 </style>

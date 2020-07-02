@@ -7,22 +7,26 @@ const routes: Array<RouteConfig> = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('../views/Home.vue'),
-    meta: {
-      tabs: [
-        { href: '#book', name: '账本' },
-        { href: '#statistics', name: '统计' },
-      ],
-    },
+    component: () => import('@/views/Home.vue'),
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/Login.vue'),
-    meta: {
-      title: '登录',
-      closable: true,
-    },
+    component: () => import('@/views/Login.vue'),
+  },
+  {
+    path: '/login/register',
+    name: 'Register',
+    component: () => import('@/views/Register.vue'),
+  },
+  {
+    path: '/404',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+  },
+  {
+    path: '*',
+    redirect: 'NotFound',
   },
 ];
 
