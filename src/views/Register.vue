@@ -25,30 +25,6 @@
         </router-link>
         <div class="text-h6">注册账户</div>
       </div>
-      <v-spacer />
-      <v-btn
-        icon
-      >
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
-      <v-progress-circular
-        v-if="networkStatus === 0"
-        class="ml-3"
-        size="24"
-        width="2"
-        indeterminate
-      ></v-progress-circular>
-      <v-btn
-        v-else
-        icon
-      >
-        <v-icon v-if="networkStatus === 1">
-          mdi-cloud-alert
-        </v-icon>
-        <v-icon v-else>
-          mdi-cloud-check
-        </v-icon>
-      </v-btn>
     </v-app-bar>
     <v-main>
       <div class="d-flex flex-column">

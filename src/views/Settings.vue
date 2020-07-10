@@ -33,9 +33,10 @@
           <v-avatar
             :size="40 + 16 * heightPercentage(props.height)"
             :color="avatar ? undefined : 'yellow darken-2'"
+            @click="openAvatar"
           >
             <v-icon dark large v-if="!avatar">mdi-account</v-icon>
-            <img v-else :src="avatar" alt="avatar">
+            <img v-else :src="avatar" alt="avatar" ref="avatar">
           </v-avatar>
           <div class="d-flex flex-column ml-4 justify-center">
             <div
@@ -255,6 +256,48 @@
         </div>
       </div>
     </transition>
+    <div
+      ref="avatarViewer" class="pswp settings-image-viewer"
+      tabindex="-1" role="dialog" aria-hidden="true"
+    >
+      <div class="pswp__bg"></div>
+      <div class="pswp__scroll-wrap">
+        <div class="pswp__container">
+          <div class="pswp__item"></div>
+          <div class="pswp__item"></div>
+          <div class="pswp__item"></div>
+        </div>
+        <v-btn
+          icon
+          color="white"
+          class="back-button"
+          @click.stop="$router.go(-1)"
+        >
+          <v-icon>mdi-arrow-left</v-icon>
+        </v-btn>
+        <v-menu bottom left>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              icon
+              color="white"
+              class="menu-button"
+              v-bind="attrs"
+              v-on="on"
+            >
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list dark>
+            <v-list-item @click="downloadAvatar">
+              <v-list-item-icon>
+                <v-icon>mdi-download</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>保存到图库</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -263,6 +306,8 @@ import Vue from 'vue';
 import { mapActions, mapGetters, mapState } from 'vuex';
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
+import PhotoSwipe from 'photoswipe';
+import 'photoswipe/dist/photoswipe.css';
 import axios, { callbacks } from '@/axios';
 import Snackbar from '@/components/Snackbar.vue';
 
@@ -378,6 +423,50 @@ export default Vue.extend({
           this.deleteAvatarLoading = false;
         });
     },
+    openAvatar() {
+      if (this.me.avatar) {
+        const match = this.me.avatar.match(/^[/\w]+\.(\d+)x(\d+)\.\w+$/);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const options = this.$options as any;
+        options.gallery = new PhotoSwipe(this.$refs.avatarViewer as HTMLElement, false, [{
+          src: this.me.avatar,
+          msrc: this.me.avatar128 || undefined,
+          w: parseInt(match[1], 10),
+          h: parseInt(match[2], 10),
+        }], {
+          getThumbBoundsFn: () => {
+            const rect = (this.$refs.avatar as HTMLElement).getBoundingClientRect();
+            const pageYScroll = window.pageYOffset || document.documentElement.scrollTop;
+            return {
+              x: rect.left,
+              y: rect.top + pageYScroll,
+              w: rect.width,
+            };
+          },
+        });
+        const item = this.$refs.avatarViewer as HTMLElement;
+        item.classList.add('image-enter-and-leave-to');
+        options.gallery.listen('initialZoomIn', () => {
+          item.classList.remove('image-enter-and-leave-to');
+        });
+        options.gallery.listen('initialZoomOut', () => {
+          item.classList.add('image-enter-and-leave-to');
+        });
+        options.gallery.listen('destroy', () => {
+          options.gallery = null;
+        });
+        options.gallery.init();
+      }
+    },
+    downloadAvatar() {
+      const link = document.createElement('a');
+      link.style.display = 'none';
+      link.download = 'download';
+      link.href = this.me.avatar;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
   },
   watch: {
     uploadedDataUrl() {
@@ -413,6 +502,8 @@ export default Vue.extend({
 </script>
 
 <style lang="sass">
+@import '~vuetify/src/styles/styles.sass'
+
 .settings-app-bar
   & .v-toolbar__image
     contain: none
@@ -459,4 +550,23 @@ export default Vue.extend({
     top: 50%
     margin-left: -16px
     margin-top: -16px
+
+.settings-image-viewer
+  .pswp__img
+    transition: border-radius 333ms map-get($transition, 'swing')
+    border-radius: 0
+  &.image-enter-and-leave-to .pswp__img
+    border-radius: 50%
+  .back-button
+    top: 4px
+    left: 4px
+    width: 48px !important
+    height: 48px !important
+    position: fixed
+  .menu-button
+    top: 4px
+    right: 4px
+    width: 48px !important
+    height: 48px !important
+    position: fixed
 </style>
