@@ -1,9 +1,11 @@
 <template>
-  <div style="position: relative;" ref="views">
-    <transition :name="routerTransition">
-      <router-view />
-    </transition>
-  </div>
+  <v-app>
+    <div style="position: relative;" ref="views" id="app-views">
+      <transition :name="routerTransition">
+        <router-view />
+      </transition>
+    </div>
+  </v-app>
 </template>
 
 <script lang="ts">
@@ -17,7 +19,6 @@ export default Vue.extend({
   },
   computed: {
     ...mapState([
-      'networkStatus',
       'routerTransition',
     ]),
   },
@@ -62,12 +63,22 @@ export default Vue.extend({
   z-index: 1
 .slide-in-leave-active, .slide-out-enter-active, .slide-y-leave-active
   z-index: 0
-.slide-in-enter, .slide-out-leave-to, .slide-y-enter
+.slide-in-enter, .slide-out-leave-to, .slide-y-enter,  .slide-y-leave-to
   opacity: 0
-.slide-in-leave-to, .slide-out-enter, .slide-y-leave-to
+.slide-in-leave-to, .slide-out-enter
   opacity: .9 // there will be a strange flash at the end of animation if remove this
 .slide-in-enter, .slide-out-leave-to
   transform: translateX(100px)
 .slide-y-enter, .slide-y-leave-to
-  transform: translateY(40px)
+  transform: translateY(60px)
+
+#app-views > div
+  min-height: 100vh
+  max-width: 100%
+  .theme--dark.v-application &
+    background: #121212
+    color: #FFFFFF
+  .theme--light.v-application &
+    background: #FFFFFF
+    color: rgba(0, 0, 0, 0.87)
 </style>

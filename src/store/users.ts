@@ -30,6 +30,12 @@ const mutations: MutationTree<UsersState> = {
       }
     });
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateUser(s, payload: any) {
+    if (s.users[payload.id]) {
+      Object.assign(s.users[payload.id], payload);
+    }
+  },
 };
 
 const users: Module<UsersState, RootState> = {

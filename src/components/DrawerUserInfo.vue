@@ -18,7 +18,7 @@
         >
           <v-avatar
             size="64"
-            color="yellow darken-2"
+            :color="avatar ? undefined : 'yellow darken-2'"
           >
             <v-icon dark large v-if="!avatar">mdi-account</v-icon>
             <img v-else :src="avatar" alt="avatar">
@@ -68,6 +68,9 @@ export default Vue.extend({
     avatarRoute(): any {
       if (!this.me && this.canLogin) {
         return { name: 'Login' };
+      }
+      if (this.me) {
+        return { name: 'Settings' };
       }
       return { name: 'NotFound' };
     },

@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <div>
     <v-app-bar
       app
       clipped-left
@@ -97,7 +97,7 @@
       </div>
     </v-main>
     <Snackbar />
-  </v-app>
+  </div>
 </template>
 
 <script lang="ts">
@@ -193,7 +193,6 @@ export default Vue.extend({
         password: this.password,
       })
         .then(() => {
-          this.loading = false;
           this.openSnackbar({
             text: '登录成功！',
             buttonColor: 'green',
@@ -201,8 +200,10 @@ export default Vue.extend({
           this.$router.push({ name: 'Home' });
         })
         .catch((error) => {
-          this.loading = false;
           this.openSnackbar(error.message);
+        })
+        .then(() => {
+          this.loading = false;
         });
     },
   },

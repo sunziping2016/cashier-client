@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <div>
     <v-app-bar
       app
       clipped-left
@@ -202,7 +202,7 @@
       </div>
     </v-main>
     <Snackbar />
-  </v-app>
+  </div>
 </template>
 
 <script lang="ts">
@@ -248,9 +248,7 @@ export default Vue.extend({
     const id = this.$route.query['registration-id'];
     if (typeof id === 'string') {
       axios
-        .get('/api/v1/users/query-registration', {
-          params: { id },
-        })
+        .get(`/api/v1/registrations/${id}`)
         .then(...callbacks())
         .then((result) => {
           if (result.status === 'Processing') {
@@ -394,7 +392,7 @@ export default Vue.extend({
     register() {
       this.basicInfoLoading = true;
       axios
-        .post('/api/v1/users/register', {
+        .post('/api/v1/registrations', {
           username: this.username,
           email: this.email,
           password: this.password,
@@ -430,7 +428,7 @@ export default Vue.extend({
       if (typeof id === 'string') {
         this.resendEmailLoading = true;
         axios
-          .post('/api/v1/users/resend-registration-email', { id })
+          .post(`/api/v1/registrations/${id}/resend`)
           .then(...callbacks())
           .catch((error) => {
             this.openSnackbar(error.message);
@@ -442,9 +440,9 @@ export default Vue.extend({
     },
     confirmRegistration() {
       this.confirmLoading = true;
+      const id = this.$route.query['registration-id'];
       axios
-        .post('/api/v1/users/confirm-registration', {
-          id: this.$route.query['registration-id'],
+        .post(`/api/v1/registrations/${id}/confirm`, {
           code: this.code,
         })
         .then(...callbacks())

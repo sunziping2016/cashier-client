@@ -52,7 +52,7 @@ const mutations: MutationTree<RootState> = {
     // eslint-disable-next-line no-param-reassign
     s.websocketRetryIntervalId = id;
   },
-  updateMyPermission(s, payload: {
+  updateMyPermissions(s, payload: {
     permissions: MyPermission[];
     availableSubjects: string[];
   }) {
@@ -63,6 +63,12 @@ const mutations: MutationTree<RootState> = {
     payload.availableSubjects.forEach((subject) => {
       // eslint-disable-next-line no-param-reassign
       s.myAvailableSubjects[subject] = true;
+    });
+  },
+  updateMySubjects(s, payload: string[]) {
+    payload.forEach((subject) => {
+      // eslint-disable-next-line no-param-reassign
+      s.mySubjects[subject] = true;
     });
   },
   setToken(s, token?: string) {
@@ -124,7 +130,7 @@ const actions: ActionTree<RootState, RootState> = {
     }
     commit('setNetworkStatus', NetworkStatus.Disconnected);
   },
-  websocketMessage({ commit }, payload: MessageEvent) {
+  websocketMessage({ state: s, commit, dispatch }, payload: MessageEvent) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data: any;
     try {
@@ -136,7 +142,27 @@ const actions: ActionTree<RootState, RootState> = {
     }
     switch (data.type) {
       case 'permission-updated':
-        commit('updateMyPermission', data);
+        commit('updateMyPermissions', data);
+        dispatch('websocketSubscribe',
+          Object.keys(s.mySubjects)
+            .filter((key) => s.mySubjects[key]));
+        break;
+      case 'subject-updated':
+        commit('updateMySubjects', data.subjects);
+        break;
+      case 'push':
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data.messages.forEach((message: any) => {
+          switch (message.type) {
+            case 'user-updated':
+              // eslint-disable-next-line no-param-reassign
+              delete message.type;
+              commit('users/updateUser', message);
+              break;
+            default:
+              console.error(`unknown push message type ${data.type}`);
+          }
+        });
         break;
       case 'response': {
         const handler = handlers[data.requestId];
@@ -175,6 +201,25 @@ const actions: ActionTree<RootState, RootState> = {
       }));
     }
     return promise;
+  },
+  websocketSubscribe({ state: s, dispatch }, payload: string[]) {
+    if (socket === null || socket.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    const alwaysSubscribed = [
+      'user-updated-self', 'user-deleted-self',
+      'token-acquired-self', 'token-revoked-self',
+    ].concat(payload);
+    const filtered = alwaysSubscribed
+      .filter((subject) => s.myAvailableSubjects[subject]);
+    dispatch('websocketRequest', {
+      message: {
+        type: 'update-subject',
+        subjects: filtered,
+      },
+    }).catch((error) => {
+      console.error(error);
+    });
   },
   initConnection({
     state: s,

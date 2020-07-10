@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <div>
     <v-app-bar
       app
       clipped-left
@@ -99,7 +99,7 @@
       </v-tabs-items>
     </v-main>
     <Snackbar />
-  </v-app>
+  </div>
 </template>
 
 <script lang="ts">
