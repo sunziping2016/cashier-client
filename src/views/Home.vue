@@ -10,19 +10,7 @@
         v-if="$vuetify.breakpoint.xsOnly"
         @click="drawer = !drawer"
       />
-      <div class="d-flex align-center">
-        <router-link :to="{ name: 'Home' }">
-          <v-img
-            v-if="$vuetify.breakpoint.smAndUp"
-            alt="Vuetify Logo"
-            class="shrink mr-2"
-            contain
-            :src="require('@/assets/logo.svg')"
-            width="40"
-          />
-        </router-link>
-        <div class="text-h6">山楂记账</div>
-      </div>
+      <NavTitle>山楂记账</NavTitle>
       <v-spacer />
       <v-btn
         icon
@@ -98,7 +86,6 @@
         </v-tab-item>
       </v-tabs-items>
     </v-main>
-    <Snackbar />
   </div>
 </template>
 
@@ -106,12 +93,12 @@
 import Vue from 'vue';
 import { mapState } from 'vuex';
 import DrawerUserInfo from '@/components/DrawerUserInfo.vue';
-import Snackbar from '@/components/Snackbar.vue';
+import NavTitle from '@/components/NavTitle.vue';
 
 export default Vue.extend({
   components: {
     DrawerUserInfo,
-    Snackbar,
+    NavTitle,
   },
   data: () => ({
     drawer: false,

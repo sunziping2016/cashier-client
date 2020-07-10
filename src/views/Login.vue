@@ -12,19 +12,7 @@
       >
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
-      <div class="d-flex align-center">
-        <router-link :to="{ name: 'Home' }">
-          <v-img
-            v-if="$vuetify.breakpoint.smAndUp"
-            alt="Vuetify Logo"
-            class="shrink mr-2"
-            contain
-            :src="require('@/assets/logo.svg')"
-            width="40"
-          />
-        </router-link>
-        <div class="text-h6">登录</div>
-      </div>
+      <NavTitle>登录</NavTitle>
     </v-app-bar>
     <v-main>
       <div class="d-flex flex-column">
@@ -72,7 +60,6 @@
         </v-form>
       </div>
     </v-main>
-    <Snackbar />
   </div>
 </template>
 
@@ -80,11 +67,11 @@
 import Vue from 'vue';
 import { mapGetters, mapActions, mapState } from 'vuex';
 import { emailRegex, usernameRegex, passwordRegex } from '@/utils';
-import Snackbar from '@/components/Snackbar.vue';
+import NavTitle from '@/components/NavTitle.vue';
 
 export default Vue.extend({
   components: {
-    Snackbar,
+    NavTitle,
   },
   data: () => ({
     valid: false,

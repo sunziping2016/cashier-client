@@ -5,15 +5,20 @@
         <router-view />
       </transition>
     </div>
+    <Snackbar />
   </v-app>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapMutations, mapState } from 'vuex';
+import Snackbar from '@/components/Snackbar.vue';
 
 export default Vue.extend({
   name: 'App',
+  components: {
+    Snackbar,
+  },
   mounted() {
     this.init();
   },

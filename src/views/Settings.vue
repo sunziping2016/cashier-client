@@ -124,7 +124,9 @@
     <v-main v-if="!(uploadedDataUrl || editorLoading)" class="settings-main">
       <v-list two-line subheader :elevation="1">
         <v-subheader>账户</v-subheader>
-        <v-list-item>
+        <v-list-item
+          :to="{ name: 'SettingsUsername' }"
+        >
           <v-list-item-content>
             <v-list-item-title>{{ me && `@${me.username}` || '(无)' }}</v-list-item-title>
             <v-list-item-subtitle>用户名</v-list-item-subtitle>
@@ -133,13 +135,13 @@
         <v-list-item>
           <v-list-item-content>
             <v-list-item-title>{{ me && me.email || '(无)' }}</v-list-item-title>
-            <v-list-item-subtitle>邮箱，点击更改</v-list-item-subtitle>
+            <v-list-item-subtitle>邮箱（仅自己可见）</v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
         <v-list-item>
           <v-list-item-content>
             <v-list-item-title>{{ me && me.nickname || '(无)' }}</v-list-item-title>
-            <v-list-item-subtitle>昵称，点击更改</v-list-item-subtitle>
+            <v-list-item-subtitle>昵称</v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -147,18 +149,10 @@
         <v-subheader>设置</v-subheader>
         <v-list-item>
           <v-list-item-icon>
-            <v-icon>mdi-bell-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>通知和推送</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item>
-          <v-list-item-icon>
             <v-icon>mdi-lock-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>权限设置</v-list-item-title>
+            <v-list-item-title>权限和推送</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-list-item>
@@ -180,7 +174,9 @@
             <v-list-item-title>常见问题</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item>
+        <v-list-item
+          href="mailto:cashier@szp.io"
+        >
           <v-list-item-icon>
             <v-icon>mdi-comment-question-outline</v-icon>
           </v-list-item-icon>
@@ -199,7 +195,6 @@
         indeterminate
       />
     </v-overlay>
-    <Snackbar />
     <transition name="slide-y">
       <div v-if="uploadedDataUrl || editorLoading" class="settings-image-editor">
         <v-btn
@@ -309,10 +304,8 @@ import 'cropperjs/dist/cropper.css';
 import PhotoSwipe from 'photoswipe';
 import 'photoswipe/dist/photoswipe.css';
 import axios, { callbacks } from '@/axios';
-import Snackbar from '@/components/Snackbar.vue';
 
 export default Vue.extend({
-  components: { Snackbar },
   data: () => ({
     uploadAvatarSheet: false,
     uploadedDataUrl: '',

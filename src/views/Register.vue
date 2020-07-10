@@ -8,23 +8,11 @@
     >
       <v-btn
         icon
-        @click="$router.go(-1)"
+        @click="$router.back()"
       >
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
-      <div class="d-flex align-center">
-        <router-link :to="{ name: 'Home' }">
-          <v-img
-            v-if="$vuetify.breakpoint.smAndUp"
-            alt="Vuetify Logo"
-            class="shrink mr-2"
-            contain
-            :src="require('@/assets/logo.svg')"
-            width="40"
-          />
-        </router-link>
-        <div class="text-h6">注册账户</div>
-      </div>
+      <NavTitle>注册账户</NavTitle>
     </v-app-bar>
     <v-main>
       <div class="d-flex flex-column">
@@ -177,7 +165,6 @@
         </v-stepper>
       </div>
     </v-main>
-    <Snackbar />
   </div>
 </template>
 
@@ -185,14 +172,16 @@
 import Vue from 'vue';
 import debounce from 'lodash-es/debounce';
 import {
-  emailRegex, usernameRegex, passwordRegex, uniqueDebounce,
+  uniqueDebounce, usernameRules, emailRules, passwordRules,
 } from '@/utils';
 import axios, { callbacks } from '@/axios';
-import Snackbar from '@/components/Snackbar.vue';
 import { mapActions, mapGetters, mapState } from 'vuex';
+import NavTitle from '@/components/NavTitle.vue';
 
 export default Vue.extend({
-  components: { Snackbar },
+  components: {
+    NavTitle,
+  },
   data: () => ({
     value: 1,
     basicInfoValid: false,
@@ -262,24 +251,13 @@ export default Vue.extend({
       'me',
     ]),
     usernameRules(): Array<(v: string) => boolean | string> {
-      return [
-        (v: string) => !!v || '用户名是必须的',
-        (v: string) => (v.length >= 3 && v.length <= 24) || '用户名应包含3到24位字符',
-        (v: string) => usernameRegex.test(v) || '用户名应当只包含英文数字和下线符',
-      ];
+      return usernameRules;
     },
     emailRules(): Array<(v: string) => boolean | string> {
-      return [
-        (v: string) => !!v || '邮箱是必须的',
-        (v: string) => emailRegex.test(v) || '不是合法的邮箱地址',
-      ];
+      return emailRules;
     },
     passwordRules(): Array<(v: string) => boolean | string> {
-      return [
-        (v: string) => !!v || '密码是必须的',
-        (v: string) => (v.length >= 6 && v.length <= 24) || '密码应包含6到24位字符',
-        (v: string) => passwordRegex.test(v) || '密码不应包含空白字符',
-      ];
+      return passwordRules;
     },
     codeRules(): Array<(v: string) => boolean | string> {
       return [
