@@ -138,7 +138,9 @@
             <v-list-item-subtitle>邮箱（仅自己可见）</v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item>
+        <v-list-item
+          :to="{ name: 'SettingsNickname' }"
+        >
           <v-list-item-content>
             <v-list-item-title>{{ me && me.nickname || '(无)' }}</v-list-item-title>
             <v-list-item-subtitle>昵称</v-list-item-subtitle>

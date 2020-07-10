@@ -20,3 +20,8 @@ export const passwordRules: Array<(v: string) => boolean | string> = [
   (v: string) => (v.length >= 6 && v.length <= 24) || '密码应包含6到24位字符',
   (v: string) => passwordRegex.test(v) || '密码不应包含空白字符',
 ];
+
+export const nicknameRules: Array<(v: string) => boolean | string> = [
+  (v: string) => !!v || '昵称是必须的',
+  (v: string) => (v.length >= 3 && v.length <= 24) || '昵称应包含3到24位字符',
+];

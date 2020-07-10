@@ -30,6 +30,11 @@ const routes: Array<RouteConfig> = [
     component: () => import('@/views/SettingsUsername.vue'),
   },
   {
+    path: '/settings/nickname',
+    name: 'SettingsNickname',
+    component: () => import('@/views/SettingsNickname.vue'),
+  },
+  {
     path: '/404',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),

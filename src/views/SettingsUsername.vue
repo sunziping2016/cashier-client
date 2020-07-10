@@ -98,6 +98,9 @@ export default Vue.extend({
       'openSnackbar',
     ]),
     submit() {
+      if (!this.valid) {
+        return;
+      }
       this.loading = true;
       axios
         .patch('/api/v1/users/me', {
