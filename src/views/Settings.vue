@@ -132,7 +132,9 @@
             <v-list-item-subtitle>用户名</v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item>
+        <v-list-item
+          :to="{ name: 'SettingsEmail' }"
+        >
           <v-list-item-content>
             <v-list-item-title>{{ me && me.email || '(无)' }}</v-list-item-title>
             <v-list-item-subtitle>邮箱（仅自己可见）</v-list-item-subtitle>

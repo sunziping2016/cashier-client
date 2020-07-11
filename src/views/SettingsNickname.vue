@@ -34,7 +34,7 @@
           :rules="nicknameRules"
           :counter="24"
         />
-        <p class="text--secondary mt-4">在<b>山楂记账</b>中，你可以选择一个你喜欢的昵称。其他用户可以通过昵称寻找到你。</p>
+        <p class="text--secondary mt-4">其他用户可以通过昵称寻找到你。</p>
         <p class="text--secondary">你可以使用<b>任意字符</b>作为昵称，昵称至少有3位长。</p>
       </v-form>
     </v-main>

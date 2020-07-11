@@ -37,7 +37,7 @@
           :loading="usernameStatus === 1"
           :append-icon="usernameStatus === 2 ? 'mdi-check' : undefined"
         />
-        <p class="text--secondary mt-4">你可以在<b>山楂记账</b>中选择一个用户名。其他用户可以通过用户名寻找到你。</p>
+        <p class="text--secondary mt-4">其他用户可以通过用户名寻找到你。</p>
         <p class="text--secondary">你可以使用<b>a-z，A-Z，0-9和下线符</b>作为用户名，用户名至少有3位长。</p>
       </v-form>
     </v-main>

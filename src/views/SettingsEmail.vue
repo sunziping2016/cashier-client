@@ -12,20 +12,20 @@
       >
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
-      <NavTitle>注册账户</NavTitle>
+      <NavTitle>邮箱</NavTitle>
     </v-app-bar>
     <v-main>
       <div class="d-flex flex-column">
         <v-stepper
           v-model="value"
-          class="register-stepper align-self-center"
+          class="update-email-stepper align-self-center"
         >
           <v-stepper-header>
             <v-stepper-step
               :complete="value > 1"
               step="1"
             >
-              填写基础信息
+              填写新邮箱
             </v-stepper-step>
             <v-divider />
             <v-stepper-step
@@ -47,21 +47,11 @@
               :step="1"
             >
               <v-form
-                v-model="basicInfoValid"
-                @submit.prevent="register"
+                v-model="emailValid"
+                @submit.prevent="updateEmail"
                 class="d-flex flex-column flex-grow-1"
               >
-                <div class="text-h5 mb-6">创建你的账号</div>
-                <v-text-field
-                  class="flex-grow-0"
-                  v-model="username"
-                  label="用户名*"
-                  :rules="usernameRules"
-                  :counter="24"
-                  :error-messages="usernameErrorMessages"
-                  :loading="usernameStatus === 1"
-                  :append-icon="usernameStatus === 2 ? 'mdi-check' : undefined"
-                />
+                <div class="text-h5 mb-6">填写新的邮箱</div>
                 <v-text-field
                   class="flex-grow-0"
                   v-model="email"
@@ -73,22 +63,13 @@
                   :loading="emailStatus === 1"
                   :append-icon="emailStatus === 2 ? 'mdi-check' : undefined"
                 />
-                <v-text-field
-                  class="flex-grow-0"
-                  :type="showPassword ? 'text' : 'password'"
-                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  v-model="password"
-                  label="密码*"
-                  :rules="passwordRules"
-                  :counter="24"
-                  @click:append="showPassword = !showPassword"
-                />
+                <p class="text--secondary mt-4">邮箱只有自己可见。它会被用于推送信息。</p>
                 <v-spacer />
                 <v-btn
                   text
                   type="submit"
-                  :loading="basicInfoLoading"
-                  :disabled="!(basicInfoValid && usernameStatus === 2 && emailStatus === 2)"
+                  :loading="emailLoading"
+                  :disabled="!(emailValid && emailStatus === 2)"
                   class="float-right mt-6 align-self-end"
                 >下一步</v-btn>
               </v-form>
@@ -98,7 +79,7 @@
             >
               <v-form
                 v-model="confirmValid"
-                @submit.prevent="confirmRegistration"
+                @submit.prevent="confirmEmail"
                 class="d-flex flex-column flex-grow-1"
               >
                 <div class="text-h5">我们向你的邮箱发送了验证码</div>
@@ -112,7 +93,7 @@
                 />
                 <div class="text-body-2 mt-4 mb-2">没有收到邮件？</div>
                 <v-btn
-                  text tile class="register-stepper-action"
+                  text tile class="update-email-stepper-action"
                   @click="resendEmail"
                   :disabled="resendEmailLoading"
                 >
@@ -126,8 +107,8 @@
                   />
                 </v-btn>
                 <v-btn
-                  text tile class="register-stepper-action"
-                  @click="editInformation"
+                  text tile class="update-email-stepper-action"
+                  @click="editEmail"
                 >
                   <v-icon left>mdi-pencil-outline</v-icon>重新编辑信息
                 </v-btn>
@@ -144,15 +125,15 @@
             <v-stepper-content
               :step="3"
             >
-              <div class="text-h5">注册成功！</div>
-              <div class="text-body-2 my-6">@{{username}}
-                已完成注册{{ me ? '' : '，您需要重新登录'}}
+              <div class="text-h5">邮件修改成功！</div>
+              <div class="text-body-2 my-6">
+                您已完成邮件修改{{ me ? '' : '，需要重新登录'}}
               </div>
               <v-btn
-                @click="jumpToHome"
+                @click="backToSettings"
                 color="primary"
               >
-                前往{{ me ? '首页' : '登录' }}
+                返回
                 <v-progress-circular
                   :size="20" :width="2" color="white"
                   :value="(redirectCountDownTotal - redirectCountDown)
@@ -170,14 +151,11 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapActions, mapGetters, mapState } from 'vuex';
 import debounce from 'lodash-es/debounce';
-import {
-  uniqueDebounce, usernameRules, emailRules, passwordRules,
-  verificationCodeRules,
-} from '@/utils';
-import axios, { callbacks } from '@/axios';
-import { mapActions, mapGetters } from 'vuex';
 import NavTitle from '@/components/NavTitle.vue';
+import axios, { callbacks } from '@/axios';
+import { emailRules, uniqueDebounce, verificationCodeRules } from '@/utils';
 
 export default Vue.extend({
   components: {
@@ -185,15 +163,11 @@ export default Vue.extend({
   },
   data: () => ({
     value: 1,
-    basicInfoValid: false,
-    username: '',
+    emailValid: false,
     email: '',
-    password: '',
-    showPassword: false,
     // 0 for error, 1 for checking, 2 for pass, 3 for rejected
-    usernameStatus: 0,
     emailStatus: 0,
-    basicInfoLoading: false,
+    emailLoading: false,
     confirmValid: false,
     confirmLoading: false,
     code: '',
@@ -211,60 +185,46 @@ export default Vue.extend({
   },
   mounted() {
     this.updateRedirectCounter();
-    const id = this.$route.query['registration-id'];
+    this.email = (this.me && this.me.email) || '';
+    const id = this.$route.query['email-updating-id'];
     if (typeof id === 'string') {
       axios
-        .get(`/api/v1/registrations/${id}`)
+        .get(`/api/v1/email-updating/${id}`)
         .then(...callbacks())
         .then((result) => {
           if (result.status === 'Processing') {
             this.value = 2;
-            this.username = result.username;
-            this.email = result.email;
           } else if (result.status === 'Passed') {
             this.value = 3;
-            this.username = result.username;
-            this.email = result.email;
           } else if (result.status === 'Rejected') {
-            this.username = result.username;
-            this.email = result.email;
-            throw Error('注册失败');
+            throw Error('更改邮箱失败');
           } else if (result.status === 'Expired') {
-            throw Error('注册超时');
+            throw Error('更改邮箱超时');
           } else if (result.status === 'NotFound') {
-            throw Error('找不到注册的信息');
+            throw Error('找不到更改邮箱的信息');
           }
         })
         .catch((error) => {
           this.openSnackbar(error.message);
           this.value = 1;
           const query = { ...this.$route.query };
-          delete query['registration-id'];
+          delete query['email-updating-id'];
           this.$router.replace({ query });
         });
     }
   },
   computed: {
+    ...mapState([
+      'token',
+    ]),
     ...mapGetters('users', [
       'me',
     ]),
-    usernameRules(): Array<(v: string) => boolean | string> {
-      return usernameRules;
-    },
     emailRules(): Array<(v: string) => boolean | string> {
       return emailRules;
     },
-    passwordRules(): Array<(v: string) => boolean | string> {
-      return passwordRules;
-    },
     codeRules(): Array<(v: string) => boolean | string> {
       return verificationCodeRules;
-    },
-    usernameErrorMessages(): string[] {
-      if (this.usernameStatus === 3) {
-        return ['该用户名已被使用'];
-      }
-      return [];
     },
     emailErrorMessages(): string[] {
       if (this.emailStatus === 3) {
@@ -274,14 +234,6 @@ export default Vue.extend({
     },
   },
   watch: {
-    username() {
-      if (this.usernameRules.every((rule) => rule(this.username) === true)) {
-        this.usernameStatus = 1;
-        this.checkUsernameUnique(this.username);
-      } else {
-        this.usernameStatus = 0;
-      }
-    },
     email() {
       if (this.emailRules.every((rule) => rule(this.email) === true)) {
         this.emailStatus = 1;
@@ -298,27 +250,6 @@ export default Vue.extend({
     ...mapActions('snackbar', [
       'openSnackbar',
     ]),
-    ...mapActions({
-      siteLogin: 'login',
-    }),
-    // eslint-disable-next-line func-names, @typescript-eslint/no-explicit-any
-    checkUsernameUnique: debounce(function (this: any, username: string) {
-      axios
-        .get('/api/v1/users/check-username-existence', {
-          params: {
-            username,
-          },
-        })
-        .then(...callbacks())
-        .then((result) => {
-          if (this.username === username) {
-            this.usernameStatus = result.exists ? 3 : 2;
-          }
-        })
-        .catch((error) => {
-          this.openSnackbar(error.message);
-        });
-    }, uniqueDebounce),
     // eslint-disable-next-line func-names, @typescript-eslint/no-explicit-any
     checkEmailUnique: debounce(function (this: any, email: string) {
       axios
@@ -337,20 +268,22 @@ export default Vue.extend({
           this.openSnackbar(error.message);
         });
     }, uniqueDebounce),
-    register() {
-      this.basicInfoLoading = true;
+    updateEmail() {
+      this.emailLoading = true;
       axios
-        .post('/api/v1/registrations', {
-          username: this.username,
+        .post('/api/v1/email-updating', {
           email: this.email,
-          password: this.password,
+        }, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
         })
         .then(...callbacks())
         .then((result) => {
           this.$router.replace({
             query: {
               ...this.$route.query,
-              'registration-id': result.id,
+              'email-updating-id': result.id,
             },
           });
           this.value = 2;
@@ -359,24 +292,28 @@ export default Vue.extend({
           this.openSnackbar(error.message);
         })
         .then(() => {
-          this.basicInfoLoading = false;
+          this.emailLoading = false;
         });
     },
-    editInformation() {
+    editEmail() {
       const query = { ...this.$route.query };
-      if (typeof query['registration-id'] === 'string') {
-        delete query['registration-id'];
+      if (typeof query['email-updating-id'] === 'string') {
+        delete query['email-updating-id'];
         this.$router.replace({ query });
       }
       this.value = 1;
     },
     resendEmail() {
       const query = { ...this.$route.query };
-      const id = query['registration-id'];
+      const id = query['email-updating-id'];
       if (typeof id === 'string') {
         this.resendEmailLoading = true;
         axios
-          .post(`/api/v1/registrations/${id}/resend`)
+          .post(`/api/v1/email-updating/${id}/resend`, {}, {
+            headers: {
+              Authorization: `Bearer ${this.token}`,
+            },
+          })
           .then(...callbacks())
           .catch((error) => {
             this.openSnackbar(error.message);
@@ -386,35 +323,20 @@ export default Vue.extend({
           });
       }
     },
-    confirmRegistration() {
+    confirmEmail() {
       this.confirmLoading = true;
-      const id = this.$route.query['registration-id'];
+      const id = this.$route.query['email-updating-id'];
       axios
-        .post(`/api/v1/registrations/${id}/confirm`, {
+        .post(`/api/v1/email-updating/${id}/confirm`, {
           code: this.code,
+        }, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
         })
         .then(...callbacks())
         .then(() => {
-          if (this.password) {
-            this.siteLogin({
-              username: this.username,
-              password: this.password,
-            })
-              .then(() => {
-                this.openSnackbar({
-                  text: '登录成功！',
-                  buttonColor: 'green',
-                });
-              })
-              .catch((error) => {
-                this.openSnackbar(error.message);
-              })
-              .then(() => {
-                this.value = 3;
-              });
-          } else {
-            this.value = 3;
-          }
+          this.value = 3;
         })
         .catch((error) => {
           this.openSnackbar(error.message);
@@ -436,22 +358,13 @@ export default Vue.extend({
             this.redirectCountDown = 0;
             clearInterval(this.redirectIntervalId);
             this.redirectIntervalId = null;
-            this.jumpToHome();
+            this.backToSettings();
           }
         }, this.redirectInterval * 1000);
       }
     },
-    jumpToHome() {
-      if (this.me) {
-        this.$router.push({ name: 'Home' });
-      } else {
-        this.$router.push({
-          name: 'Login',
-          query: {
-            account: this.username,
-          },
-        });
-      }
+    backToSettings() {
+      this.$router.back();
     },
   },
 });
@@ -460,7 +373,7 @@ export default Vue.extend({
 <style lang="sass">
 @import '~vuetify/src/styles/styles.sass'
 
-.register-stepper
+.update-email-stepper
   min-width: min(100vw, 600px)
   &-action
     padding: 0 8px !important
@@ -468,7 +381,7 @@ export default Vue.extend({
       justify-content: left
 
 @media #{map-get($display-breakpoints, 'xs-only')}
-  .register-stepper
+  .update-email-stepper
     min-height: calc(100vh - 56px)
     display: flex
     flex-direction: column

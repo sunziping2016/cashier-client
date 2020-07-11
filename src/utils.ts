@@ -25,3 +25,9 @@ export const nicknameRules: Array<(v: string) => boolean | string> = [
   (v: string) => !!v || '昵称是必须的',
   (v: string) => (v.length >= 3 && v.length <= 24) || '昵称应包含3到24位字符',
 ];
+
+export const verificationCodeRules: Array<(v: string) => boolean | string> = [
+  (v: string) => !!v || '验证码是必须的',
+  (v: string) => v.length === 6 || '验证码应包含6位字符',
+  (v: string) => /^\d*$/.test(v) || '验证码应当只包含数字',
+];
