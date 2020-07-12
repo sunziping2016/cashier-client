@@ -160,7 +160,7 @@ const actions: ActionTree<RootState, RootState> = {
               commit('users/updateUser', message);
               break;
             default:
-              console.error(`unknown push message type ${data.type}`);
+              console.error(`unknown push message type ${message.type}`);
           }
         });
         break;
@@ -221,7 +221,7 @@ const actions: ActionTree<RootState, RootState> = {
       console.error(error);
     });
   },
-  initConnection({
+  async initConnection({
     state: s,
     getters: g,
     commit,
@@ -229,7 +229,7 @@ const actions: ActionTree<RootState, RootState> = {
   }) {
     if (socket !== null && socket.readyState === WebSocket.OPEN && s.token !== undefined) {
       // TODO: resume token
-      dispatch('websocketRequest', {
+      await dispatch('websocketRequest', {
         message: {
           type: 'update-token',
           jwt: s.token || null,
@@ -237,7 +237,7 @@ const actions: ActionTree<RootState, RootState> = {
       }).then((/* response */) => {
         // TODO: error processing
         // fetch user information
-        if (g.myPermissionsSet['user:read'] || g.myPermissionsSet['user:read-self']) {
+        if (g.myPermissionsSet['user:read-self']) {
           return axios
             .get('/api/v1/users/me', {
               headers: {
@@ -257,20 +257,34 @@ const actions: ActionTree<RootState, RootState> = {
       // TODO: fetch user information
     }
   },
-  updateToken({ commit, dispatch }, payload: string | undefined) {
+  async updateToken({ commit, dispatch }, payload: string | undefined) {
     commit('setToken', payload);
-    dispatch('initConnection');
+    await dispatch('initConnection');
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  login({ dispatch }, payload: any): Promise<any> {
+  async login({ dispatch }, payload: any): Promise<void> {
     const account = payload.username === undefined ? 'email' : 'username';
-    return axios
+    await axios
       .post(`/api/v1/tokens/acquire-by-${account}`, payload)
       .then(...callbacks())
-      .then((result) => {
-        dispatch('updateToken', result.jwt);
-        return result;
-      });
+      .then((result) => dispatch('updateToken', result.jwt));
+  },
+  async logout({ state: s, dispatch, commit }): Promise<void> {
+    const { token } = s;
+    commit('setToken');
+    dispatch('initConnection');
+    if (token) {
+      await axios
+        .delete('/api/v1/tokens/my-jwt/this', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(...callbacks())
+        .then(() => {
+          dispatch('updateToken');
+        });
+    }
   },
 };
 

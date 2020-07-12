@@ -35,7 +35,9 @@
             </v-list-item-icon>
             <v-list-item-title>修改密码</v-list-item-title>
           </v-list-item>
-          <v-list-item>
+          <v-list-item
+            @click="logout"
+          >
             <v-list-item-icon>
               <v-icon color="red">mdi-exit-to-app</v-icon>
             </v-list-item-icon>
@@ -369,6 +371,18 @@ export default Vue.extend({
     ...mapActions('snackbar', [
       'openSnackbar',
     ]),
+    ...mapActions({
+      siteLogout: 'logout',
+    }),
+    logout() {
+      this.siteLogout()
+        .then(() => {
+          this.$router.go(-1);
+        })
+        .catch((error) => {
+          this.openSnackbar(error.message);
+        });
+    },
     heightPercentage(height: string): number {
       const realHeight = parseInt(height.slice(0, -2), 10);
       const percentage = (realHeight - this.minAppBarHeight)

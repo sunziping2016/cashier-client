@@ -65,7 +65,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters, mapActions, mapState } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import { emailRegex, usernameRegex, passwordRegex } from '@/utils';
 import NavTitle from '@/components/NavTitle.vue';
 
@@ -89,9 +89,6 @@ export default Vue.extend({
     }
   },
   computed: {
-    ...mapState([
-      'networkStatus',
-    ]),
     ...mapGetters([
       'myPermissionsSet',
     ]),
