@@ -16,11 +16,33 @@
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
       <v-spacer />
-      <v-btn
-        icon
-      >
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
+      <v-menu bottom left>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            icon
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+            :to="{ name: 'SettingsPassword' }"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-lock-question</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>修改密码</v-list-item-title>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-icon>
+              <v-icon color="red">mdi-exit-to-app</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title class="red--text">退出登录</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
       <template v-slot:img="{ props }">
         <div
           :style="{
@@ -153,18 +175,18 @@
         <v-subheader>设置</v-subheader>
         <v-list-item>
           <v-list-item-icon>
-            <v-icon>mdi-lock-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>权限和推送</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item>
-          <v-list-item-icon>
             <v-icon>mdi-devices</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>设备和授权</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon>mdi-lock-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>权限信息</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>

@@ -40,6 +40,11 @@ const routes: Array<RouteConfig> = [
     component: () => import('@/views/SettingsEmail.vue'),
   },
   {
+    path: '/settings/password',
+    name: 'SettingsPassword',
+    component: () => import('@/views/SettingsPassword.vue'),
+  },
+  {
     path: '/404',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),
