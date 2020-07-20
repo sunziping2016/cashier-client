@@ -44,11 +44,120 @@
         :value="query"
         @input="$router.replace({ query: { ...$route.query, query: $event || '' } })"
       />
-      <v-btn
-        icon
+      <v-menu
+        :nudge-width="200"
+        v-model="sortMenu"
       >
-        <v-icon>mdi-sort-variant</v-icon>
-      </v-btn>
+        <template
+          v-slot:activator="{ on, attrs }"
+        >
+          <v-btn
+            icon
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon>mdi-sort-variant</v-icon>
+          </v-btn>
+        </template>
+        <v-list subheader>
+          <v-subheader>排序字段</v-subheader>
+          <v-list-item-group
+            mandatory
+            :value="sort"
+            @change="sort = $event"
+            color="primary"
+          >
+            <v-list-item
+              value="issuedAt"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-clock-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>颁发时间</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              value="expiresAt"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-timer-off-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>过期时间</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              value="acquireMethod"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-login-variant</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>获取方式</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              value="acquireRemote"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-network-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>申请者IP</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              value="acquireRemoteRegionName"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-clock-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>申请者地区</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              value="acquireUserAgent"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-devices</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>User Agent</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+          <v-subheader>排序方向</v-subheader>
+          <v-list-item-group
+            mandatory
+            :value="desc"
+            @change="desc = $event"
+            color="primary"
+          >
+            <v-list-item
+              :value="false"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-sort-ascending</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>升序</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+              :value="true"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-sort-descending</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>降序</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </v-menu>
     </v-app-bar>
     <v-app-bar
       v-else
@@ -77,7 +186,11 @@
         subheader three-line :elevation="1" class="pb-0 mb-2"
       >
         <v-subheader>当前会话</v-subheader>
-        <SessionListItem :token="myToken" :user-agent="myTokenUserAgent" />
+        <SessionListItem
+          :token="myToken" :user-agent="myTokenUserAgent"
+          v-ripple
+          @click.native="goToDetailPage(myToken.id)"
+        />
         <v-divider />
         <v-btn tile text block class="red--text justify-start" large>结束其他会话</v-btn>
       </v-list>
@@ -93,13 +206,17 @@
                 toggleSelectedGroup(group_idx) : undefined"
           :style="{ userSelect: 'none' }"
         >
-          <v-icon
-            v-if="group.selected !== undefined"
-            :color="group.selected ? 'primary' : 'grey'"
-            class="mr-4"
-            :style="{ fontSize: '18px' }"
-          >mdi-check-circle</v-icon>
-          {{ group.group }}
+          <div
+            :style="{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }"
+          >
+            <v-icon
+              v-if="group.selected !== undefined"
+              :color="group.selected ? 'primary' : 'grey'"
+              class="mr-4"
+              :style="{ fontSize: '18px' }"
+            >mdi-check-circle</v-icon>
+            {{ group.group }}
+          </div>
         </v-subheader>
         <RecycleScroller
           :items="group.tokens"
@@ -133,6 +250,12 @@
           :width="3"
         />
       </div>
+      <div
+        v-else-if="fetchMoreTokensFinished"
+        class="pa-2 text-center text--secondary"
+      >
+        没有更多的内容啦
+      </div>
     </v-main>
   </div>
 </template>
@@ -152,9 +275,23 @@ import {
   Token,
 } from '@/store/types';
 
-type IResult = ReturnType<UAParser['getResult']>
+type IResult = ReturnType<UAParser['getResult']>;
+type Group = {
+  id: string;
+  group: string;
+  selected?: boolean;
+  tokens: Array<{
+    id: number;
+    token: Token;
+    userAgent: IResult | undefined;
+    selected?: boolean;
+    groupLast?: boolean;
+    totalLast?: boolean;
+  }>;
+};
+type Groups = Array<Group>;
 
-// TODO: push, actions, sort
+// TODO: push, actions, detail
 
 export default Vue.extend({
   components: {
@@ -181,6 +318,7 @@ export default Vue.extend({
       touchMinDistance: 16,
       touchTimeout: 500,
       touchTimeoutId: undefined as number | undefined,
+      sortMenu: false,
     };
   },
   mounted() {
@@ -234,6 +372,43 @@ export default Vue.extend({
         }
       },
     },
+    desc: {
+      get(): boolean {
+        const { desc } = this.$route.query;
+        return desc === 'true';
+      },
+      set(value: boolean) {
+        const query = { ...this.$route.query };
+        if (value) {
+          query.desc = 'true';
+        } else {
+          delete query.desc;
+        }
+        this.$router.replace({ query });
+      },
+    },
+    sort: {
+      get(): string {
+        const { sort } = this.$route.query;
+        if (sort === 'issuedAt' || sort === 'acquireMethod'
+          || sort === 'acquireRemote' || sort === 'acquireRemoteRegionName'
+          || sort === 'acquireUserAgent') {
+          return sort;
+        }
+        return 'expiresAt';
+      },
+      set(value: string) {
+        const query = { ...this.$route.query };
+        if (value === 'issuedAt' || value === 'acquireMethod'
+          || value === 'acquireRemote' || value === 'acquireRemoteRegionName'
+          || value === 'acquireUserAgent') {
+          query.sort = value;
+        } else {
+          delete query.sort;
+        }
+        this.$router.replace({ query });
+      },
+    },
     query(): string | undefined {
       return typeof this.$route.query.query === 'string' ? this.$route.query.query : undefined;
     },
@@ -263,46 +438,84 @@ export default Vue.extend({
       }
       return tokens;
     },
-    groupedTokens(): Array<{
-      id: string;
-      group: string;
-      selected?: boolean;
-      tokens: Array<{
-        id: number;
-        token: Token;
-        userAgent: IResult | undefined;
-        selected?: boolean;
-        groupLast?: boolean;
-        totalLast?: boolean;
-      }>;
-    }> {
-      const groups: Array<{
-        id: string;
-        group: string;
-        selected?: boolean;
-        tokens: Array<{
-          id: number;
-          token: Token;
-          userAgent: IResult | undefined;
-          selected?: boolean;
-          groupLast?: boolean;
-          totalLast?: boolean;
-        }>;
-      }> = [{
-        id: 'active',
-        group: '活跃会话',
-        tokens: [],
-      }, {
-        id: 'expired',
-        group: '过期会话',
-        tokens: [],
-      }];
+    grouper(): (token: Token) => { id: string; group: string } {
+      switch (this.sort) {
+        case 'expiresAt':
+          return (token: Token) => (token.expiresAt <= new Date() ? {
+            id: 'expired',
+            group: '过期会话',
+          } : {
+            id: 'active',
+            group: '活跃会话',
+          });
+        case 'acquireMethod':
+          return (token: Token) => {
+            switch (token.acquireMethod) {
+              case 'username':
+                return {
+                  id: 'username',
+                  group: '用户名登录',
+                };
+              case 'email':
+                return {
+                  id: 'email',
+                  group: '邮箱登录',
+                };
+              case 'resume':
+                return {
+                  id: 'resume',
+                  group: '续期',
+                };
+              default:
+                return {
+                  id: 'unknown',
+                  group: '未知登录方式',
+                };
+            }
+          };
+        case 'acquireRemote':
+          return (token: Token) => (typeof token.acquireRemote === 'string' ? {
+            id: token.acquireRemote,
+            group: token.acquireRemote,
+          } : {
+            id: 'unknown',
+            group: '未知IP',
+          });
+        case 'acquireRemoteRegionName':
+          return (token: Token) => (typeof token.acquireRemoteRegionName === 'string' ? {
+            id: token.acquireRemoteRegionName,
+            group: token.acquireRemoteRegionName,
+          } : {
+            id: 'unknown',
+            group: '未知地区',
+          });
+        case 'acquireUserAgent':
+          return (token: Token) => (typeof token.acquireUserAgent === 'string' ? {
+            id: token.acquireUserAgent,
+            group: token.acquireUserAgent,
+          } : {
+            id: 'unknown',
+            group: '未知UA',
+          });
+        default:
+          return () => ({ id: 'results', group: '搜索结果' });
+      }
+    },
+    groupedTokens(): Groups {
+      const groups: Groups = [];
+      const { grouper } = this;
+      const groupsMap: { [id: string]: number } = {};
       this.tokens.forEach((token) => {
-        if (token.token.expiresAt <= new Date()) {
-          groups[1].tokens.push(token);
+        const groupInfo = grouper(token.token);
+        let group: Group;
+        if (groupsMap[groupInfo.id] !== undefined) {
+          group = groups[groupsMap[groupInfo.id]];
         } else {
-          groups[0].tokens.push(token);
+          group = { ...groupInfo, tokens: [] };
+          groupsMap[group.id] = groups.length;
+          groups.push(group);
         }
+        group.tokens.push(token);
       });
       const filteredGroups = groups.filter((x) => x.tokens.length);
       filteredGroups.forEach((x) => {
@@ -328,21 +541,24 @@ export default Vue.extend({
   watch: {
     myToken(value) {
       if (value) {
-        this.tokenIds = this.tokenIds.filter((x) => x !== value);
+        this.tokenIds = this.tokenIds.filter((x) => x !== value.id);
       }
     },
-    query() {
-      this.tokenIds = [];
-      this.fetchMoreTokensFinished = false;
-      this.fetchMoreTokensCursor = '';
-      this.debouncedFetchMoreTokens();
-    },
+    query: 'restartSearch',
+    sort: 'restartSearch',
+    desc: 'restartSearch',
   },
   methods: {
     ...mapActions('snackbar', [
       'openSnackbar',
     ]),
     ...mapMutations('tokens', ['updateTokens']),
+    restartSearch() {
+      this.tokenIds = [];
+      this.fetchMoreTokensFinished = false;
+      this.fetchMoreTokensCursor = '';
+      this.debouncedFetchMoreTokens();
+    },
     onTouchStart(event: TouchEvent) {
       if (this.touchTimeoutId !== undefined) {
         clearTimeout(this.touchTimeoutId);
@@ -482,8 +698,8 @@ export default Vue.extend({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const params: any = {
         size: this.fetchMoreTokensSize,
-        sort: 'expiresAt',
-        desc: true,
+        sort: this.sort,
+        desc: this.query === undefined ? true : this.desc,
       };
       const { query } = this;
       if (this.myToken) {
@@ -512,6 +728,10 @@ export default Vue.extend({
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.updateTokens(results.map((x: any) => x.token));
+          if (this.myToken) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-param-reassign
+            results = results.filter((x: any) => x.token.id !== this.myToken.id);
+          }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.tokenIds = this.tokenIds.concat(results.map((x: any) => x.token.id));
           if (results.length < this.fetchMoreTokensSize) {
