@@ -21,6 +21,9 @@ export default Vue.extend({
   },
   mounted() {
     this.init();
+    this.$router.afterEach((to) => {
+      this.websocketSubscribe(to.meta.subscribe || []);
+    });
   },
   computed: {
     ...mapState([
@@ -47,6 +50,7 @@ export default Vue.extend({
     ]),
     ...mapActions([
       'init',
+      'websocketSubscribe',
     ]),
     ...mapActions('snackbar', [
       'openSnackbar',

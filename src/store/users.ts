@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { GetterTree, Module, MutationTree } from 'vuex';
 import {
-  RootState, UsersState, User, mergeUserAccessLevel,
+  mergeUserAccessLevel, RootState, User, UserAccessLevel, UsersState,
 } from './types';
 
 const state: UsersState = {
@@ -16,8 +16,14 @@ const getters: GetterTree<UsersState, RootState> = {
 };
 
 const mutations: MutationTree<UsersState> = {
-  commitUsers(s, payload: User[]) {
+  updateUsers(s, payload: User[]) {
     payload.forEach((user) => {
+      // eslint-disable-next-line no-param-reassign
+      user.createdAt = new Date(user.createdAt);
+      if (user.access === UserAccessLevel.All) {
+        // eslint-disable-next-line no-param-reassign
+        user.updatedAt = new Date(user.updatedAt);
+      }
       const oldUser = s.users[user.id];
       if (oldUser === undefined) {
         Vue.set(s.users, user.id, user);
@@ -33,6 +39,14 @@ const mutations: MutationTree<UsersState> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateUser(s, payload: any) {
     if (s.users[payload.id]) {
+      if (payload.createdAt) {
+        // eslint-disable-next-line no-param-reassign
+        payload.createdAt = new Date(payload.createdAt);
+      }
+      if (payload.updatedAt) {
+        // eslint-disable-next-line no-param-reassign
+        payload.updatedAt = new Date(payload.updatedAt);
+      }
       Object.assign(s.users[payload.id], payload);
     }
   },

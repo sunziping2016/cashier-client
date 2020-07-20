@@ -1,5 +1,7 @@
 <template>
-  <div>
+  <div
+    class="settings-main"
+  >
     <v-app-bar
       v-if="!(uploadedDataUrl || editorLoading)"
       app
@@ -145,7 +147,7 @@
         </v-bottom-sheet>
       </template>
     </v-app-bar>
-    <v-main v-if="!(uploadedDataUrl || editorLoading)" class="settings-main">
+    <v-main v-if="!(uploadedDataUrl || editorLoading)">
       <v-list two-line subheader :elevation="1">
         <v-subheader>账户</v-subheader>
         <v-list-item
@@ -175,12 +177,14 @@
       </v-list>
       <v-list subheader :elevation="1" class="my-2">
         <v-subheader>设置</v-subheader>
-        <v-list-item>
+        <v-list-item
+          :to="{ name: 'SettingsSessions' }"
+        >
           <v-list-item-icon>
             <v-icon>mdi-devices</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>设备和授权</v-list-item-title>
+            <v-list-item-title>会话</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-list-item>
@@ -546,7 +550,7 @@ export default Vue.extend({
     pointer-events: auto
 .settings-main
   .theme--light.v-application &
-    background-color: #f5f5f5
+    background-color: #f5f5f5 !important
 
 .settings-image-editor
   position: fixed

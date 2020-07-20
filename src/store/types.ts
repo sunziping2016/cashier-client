@@ -40,16 +40,12 @@ export interface OpenSnackbarPayload {
 
 export enum UserAccessLevel {
   Public = 'public',
-  WithoutRoles = 'without-roles', // without roles
   All = 'all',
 }
 
 export function mergeUserAccessLevel(a: UserAccessLevel, b: UserAccessLevel) {
   if (a === UserAccessLevel.All || b === UserAccessLevel.All) {
     return UserAccessLevel.All;
-  }
-  if (a === UserAccessLevel.WithoutRoles || b === UserAccessLevel.WithoutRoles) {
-    return UserAccessLevel.WithoutRoles;
   }
   return UserAccessLevel.Public;
 }
@@ -62,19 +58,6 @@ export interface UserPublic {
   avatar?: string;
   avatar128?: string;
   createdAt: Date;
-}
-
-export interface UserWithoutRoles {
-  access: UserAccessLevel.WithoutRoles;
-  id: number;
-  username: string;
-  email?: string;
-  nickname?: string;
-  avatar?: string;
-  avatar128?: string;
-  blocked?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface UserAll {
@@ -91,10 +74,33 @@ export interface UserAll {
   updatedAt: Date;
 }
 
-export type User = UserPublic | UserWithoutRoles | UserAll;
+export type User = UserPublic | UserAll;
 
 export interface UsersState {
   users: {
     [id: number]: User;
+  };
+}
+
+export interface Token {
+  id: number;
+  user: number;
+  issuedAt: Date;
+  expiresAt: Date;
+  acquireMethod: string;
+  acquireHost: string;
+  acquireRemote?: string;
+  acquireUserAgent?: string;
+  acquireRemoteCountry?: string;
+  acquireRemoteCountryName?: string;
+  acquireRemoteRegion?: string;
+  acquireRemoteRegionName?: string;
+  acquireRemoteAsNumber?: number;
+  acquireRemoteAsName?: string;
+}
+
+export interface TokensState {
+  tokens: {
+    [id: number]: Token;
   };
 }

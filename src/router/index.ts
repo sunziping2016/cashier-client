@@ -45,6 +45,14 @@ const routes: Array<RouteConfig> = [
     component: () => import('@/views/SettingsPassword.vue'),
   },
   {
+    path: '/settings/sessions',
+    name: 'SettingsSessions',
+    component: () => import('@/views/SettingsSessions.vue'),
+    meta: {
+      subscribe: ['token-acquired-self', 'token-revoked-self'],
+    },
+  },
+  {
     path: '/404',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),

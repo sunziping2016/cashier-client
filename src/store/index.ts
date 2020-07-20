@@ -6,7 +6,9 @@ import {
 } from '@/store/types';
 import snackbar from '@/store/snackbar';
 import users from '@/store/users';
+import tokens from '@/store/tokens';
 import axios, { callbacks } from '@/axios';
+import router from '@/router';
 
 Vue.use(Vuex);
 
@@ -148,9 +150,11 @@ const actions: ActionTree<RootState, RootState> = {
             .filter((key) => s.mySubjects[key]));
         break;
       case 'subject-updated':
+        console.log('subject-updated', data.subjects);
         commit('updateMySubjects', data.subjects);
         break;
       case 'push':
+        console.log('push', data.messages);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data.messages.forEach((message: any) => {
           switch (message.type) {
@@ -206,11 +210,13 @@ const actions: ActionTree<RootState, RootState> = {
     if (socket === null || socket.readyState !== WebSocket.OPEN) {
       return;
     }
-    const alwaysSubscribed = [
+    const alwaysSubscribed: Set<string> = new Set<string>([
       'user-updated-self', 'user-deleted-self',
       'token-acquired-self', 'token-revoked-self',
-    ].concat(payload);
-    const filtered = alwaysSubscribed
+      ...payload,
+      ...(router.currentRoute.meta.subscribe || []),
+    ]);
+    const filtered = [...alwaysSubscribed]
       .filter((subject) => s.myAvailableSubjects[subject]);
     dispatch('websocketRequest', {
       message: {
@@ -246,7 +252,7 @@ const actions: ActionTree<RootState, RootState> = {
             })
             .then(...callbacks())
             .then((userResponse) => {
-              commit('users/commitUsers', [userResponse.user]);
+              commit('users/updateUsers', [userResponse.user]);
             })
             .catch((e) => {
               console.error(e);
@@ -275,7 +281,7 @@ const actions: ActionTree<RootState, RootState> = {
     dispatch('initConnection');
     if (token) {
       await axios
-        .delete('/api/v1/tokens/my-jwt/this', {
+        .delete('/api/v1/my-tokens/this', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -296,5 +302,6 @@ export default new Vuex.Store<RootState>({
   modules: {
     snackbar,
     users,
+    tokens,
   },
 });
